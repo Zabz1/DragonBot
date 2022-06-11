@@ -33,9 +33,12 @@ def tap(x,y):
     device.shell(f"input tap {x} {y}")
 
 def wait(t):
-    print(f"Waiting...{t}s",end=" " ,flush=True)
-    time.sleep(t)
-    print("... done")
+    for i in range(int(t)):
+        print(f"{(t-i):2d}s",end="\r")
+        time.sleep(1)
+
+def print_cmd(string):
+    print("    ","CMD",string,"                     ", end="\r")
 
 def routine():
     global i
@@ -46,99 +49,100 @@ def routine():
     # reset to known state
     device.shell("input keyevent KEYCODE_HOME")
     
-    print("open app")
+    print_cmd("open app")
     tap(540,1700) # open app
     wait(15)
     # landscape orientation switches x/y sometimes
     
     # update confirm
-    print("update confirm")
+    print_cmd("update confirm")
     device.shell("input touchscreen tap 1200 700 ")
     wait(15)
 
     # patch notes close
 
     # start
-    print("start")
+    print_cmd("press start")
     device.shell("input touchscreen tap 960 860 ")
     wait(10)
 
     # close announcement
-    print("close announcement")
+    print_cmd("close announcement")
     device.shell("input touchscreen tap 1560 110 ")
     wait(2)
 
     # sign-in event claim
-    print("sign-in event claim")
+    print_cmd("sign-in event claim")
     device.shell("input touchscreen tap 1390 930 ")
     wait(2)
 
     # close event
-    print("close event")
+    print_cmd("close event")
     device.shell("input touchscreen tap 1850 100 ")
     wait(2)
 
     # collect statue island ressources
-    print("collect statue island ressources")
+    print_cmd("collect statue island ressources")
     device.shell("input touchscreen tap 330 707 ")
     wait(10)
 
     # collect statue idle
-    print("collect statue idle")
+    print_cmd("collect statue idle")
     device.shell("input touchscreen tap 455 568 ")
     wait(4)
 
     # collect statue gem
-    print("collect statue idle")
+    print_cmd("collect statue idle")
     device.shell("input touchscreen tap 394 633 ")
     wait(4)
 
     if i >= idle_frequency:
         # Battle
-        print("Battle")
+        print_cmd("Battle")
         device.shell("input touchscreen tap 110 960 ")
         wait(2)
 
         # Adventure
-        print("Adventure")
+        print_cmd("Adventure")
         device.shell("input touchscreen tap 340 450 ")
         wait(2)
 
         # Loot
-        print("Loot")
+        print_cmd("Loot")
         device.shell("input touchscreen tap 1810 258 ")
         wait(2)
 
         # Claim
-        print("Claim")
+        print_cmd("Claim")
         device.shell("input touchscreen tap 960 919 ")
         wait(2)
 
         # possible levelup
-        print("possible levelup")
+        print_cmd("possible levelup")
         device.shell("input touchscreen tap 987 913 ")
         wait(2)
 
         i = 0
 
     # close app
-    print("close app")
+    print_cmd("close app")
     device.shell("am force-stop com.jdgames.dragon.googleplay")
     wait(2)
 
     # go to sleep
-    print("go to sleep")
+    print_cmd("go to sleep")
     device.shell("input keyevent 26")
+    print()
 
 def deamon():
     global i
 
-    starttime = time.perf_counter()
+    starttime = time.perf_counter() - frequency
     humanrand = randrange(100)
 
     while True:
         print("DEAMON",f"{round(starttime+frequency+humanrand-time.perf_counter()):5d}",end='\r')
-        if starttime <= time.perf_counter() - frequency:
+        if starttime <= time.perf_counter() - frequency - humanrand:
             print("")
             i += 1
             routine()
@@ -150,9 +154,15 @@ def deamon():
 # Default is "127.0.0.1" and 5037
 client = AdbClient(host="127.0.0.1", port=5037)
 devices = client.devices()
-device = devices[0]
-print(device)
-deamon()
+try:
+    device = devices[0]
+except:
+    print("No Device found")
+    pass
+
+if 'device' in locals():
+    print("Device found")
+    deamon()
     
 
 
